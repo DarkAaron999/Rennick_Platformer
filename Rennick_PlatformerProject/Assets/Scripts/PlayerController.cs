@@ -15,8 +15,8 @@ public class PlayerController : MonoBehaviour
     private float acceleration;
     private float deceleration;
     public float maxSpeed;
-    public float timeToReachMoveSpeed;
-    public float timeToReachDecelrate;
+    public float timeToReachMaxSpeed;
+    public float timeToReachDecelerate;
     
     private float gravity;
     public float apexHeight;
@@ -24,7 +24,6 @@ public class PlayerController : MonoBehaviour
     private float terminalFallingSpeed;
     private Vector2 initialJumpVelocity = Vector2.zero;
 
-    private bool isWalking = false;
     private bool didWeJump = false;
 
     // Start is called before the first frame update
@@ -33,8 +32,8 @@ public class PlayerController : MonoBehaviour
         gravity = apexHeight / apexTime;
         terminalFallingSpeed = apexHeight / apexTime;
 
-        acceleration = maxSpeed / timeToReachMoveSpeed;
-        deceleration = maxSpeed / timeToReachDecelrate; 
+        acceleration = maxSpeed / timeToReachMaxSpeed;
+        deceleration = maxSpeed / timeToReachDecelerate; 
 
         rb = GetComponent<Rigidbody2D>();
     }
@@ -53,8 +52,10 @@ public class PlayerController : MonoBehaviour
     {
         //The input from the player needs to be determined and then passed in the to the MovementUpdate which should
         //manage the actual movement of the character.
+
         //Vector2 playerInput = new Vector2(Input.GetAxis("Horizontal"), 0);
-        
+        //MovementUpdate(playerInput);
+
         Vector2 playerInput = new Vector2();
         MovementUpdate(playerInput);
 
@@ -63,30 +64,33 @@ public class PlayerController : MonoBehaviour
 
     private void MovementUpdate(Vector2 playerInput)
     {
-        velocity = rb.velocity;
-        initialJumpVelocity = rb.velocity;
-        //Vector2 movement = new Vector2 (playerInput.x * moveSpeed, rb.velocity.y);
+        //Vector2 movement = new Vector2(playerInput.x * maxSpeed, rb.velocity.y);
         //rb.velocity = movement;
 
-        //Vector2 movment = new Vector2(playerInput.x * moveSpeed, rb.velocity.y);
+        //Vector2 movment = new Vector2(playerInput.x * maxSpeed, rb.velocity.y);
         //rb.velocity = Vector2.Lerp(rb.velocity, movment, acceleration * Time.deltaTime);
+
+        //velocity = rb.velocity;
+        initialJumpVelocity = rb.velocity;
 
         if (Input.GetKey(KeyCode.LeftArrow))
         {
-            velocity += Vector2.left * acceleration * Time.deltaTime;
-            isWalking = true;
+            rb.velocity += Vector2.left * acceleration * Time.deltaTime;
         }
 
         if (Input.GetKey(KeyCode.RightArrow))
         {
-            velocity += Vector2.right * acceleration * Time.deltaTime;
-            isWalking = true;
+            rb.velocity += Vector2.right * acceleration * Time.deltaTime;
         }
 
-        if (velocity != Vector2.zero && !Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
+        if (rb.velocity.magnitude >= maxSpeed)
         {
-            velocity -= velocity.normalized * deceleration * Time.deltaTime;
-            isWalking = false;
+            rb.velocity = rb.velocity.normalized * maxSpeed;
+        }
+
+        if (rb.velocity != Vector2.zero && !Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
+        {
+            rb.velocity -= rb.velocity.normalized * deceleration * Time.deltaTime;
         }
 
         if (didWeJump)
@@ -97,9 +101,7 @@ public class PlayerController : MonoBehaviour
             didWeJump = false;
         }
 
-        rb.velocity = velocity;
-
-
+        //rb.velocity = velocity;
 
 
         //https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Vector2.Lerp.html
@@ -109,13 +111,13 @@ public class PlayerController : MonoBehaviour
 
     public bool IsWalking()
     {
-        if (isWalking)
+        if (rb.velocity == Vector2.zero)
         {
-            return true;
+            return false;
         }
         else
         {
-            return false;
+            return true;
         }
     }
     public bool IsGrounded()
