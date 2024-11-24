@@ -312,7 +312,7 @@ GameObject:
   - component: {fileID: 1054579210}
   - component: {fileID: 1054579209}
   - component: {fileID: 1054579211}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: GroundTilemap
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1698,6 +1698,9 @@ MonoBehaviour:
   timeToReachDecelerate: 2
   apexHeight: -20
   apexTime: 1
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!4 &1433354315
 Transform:
   m_ObjectHideFlags: 0

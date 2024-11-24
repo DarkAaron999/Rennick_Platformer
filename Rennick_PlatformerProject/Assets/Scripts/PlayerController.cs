@@ -24,7 +24,13 @@ public class PlayerController : MonoBehaviour
     private float terminalFallingSpeed;
     private Vector2 initialJumpVelocity = Vector2.zero;
 
+    private bool facingLeft = false;
+
     private bool didWeJump = false;
+
+    private bool isOnGround = true;
+
+    public LayerMask groundLayer;
 
     // Start is called before the first frame update
     void Start()
@@ -60,6 +66,18 @@ public class PlayerController : MonoBehaviour
         MovementUpdate(playerInput);
 
         Debug.Log("Players Velocity; " + velocity);
+
+        RaycastHit2D onGround = Physics2D.Raycast(transform.position, Vector2.down, 1f, groundLayer);
+        if (onGround.collider != null)
+        {
+            isOnGround = true;
+            Debug.Log("is on ground");
+        }
+        else
+        {
+            isOnGround = false;
+            Debug.Log("not on ground");
+        }
     }
 
     private void MovementUpdate(Vector2 playerInput)
@@ -71,16 +89,19 @@ public class PlayerController : MonoBehaviour
         //rb.velocity = Vector2.Lerp(rb.velocity, movment, acceleration * Time.deltaTime);
 
         //velocity = rb.velocity;
+
         initialJumpVelocity = rb.velocity;
 
         if (Input.GetKey(KeyCode.LeftArrow))
         {
             rb.velocity += Vector2.left * acceleration * Time.deltaTime;
+            facingLeft = true;
         }
 
         if (Input.GetKey(KeyCode.RightArrow))
         {
             rb.velocity += Vector2.right * acceleration * Time.deltaTime;
+            facingLeft = false;
         }
 
         if (rb.velocity.magnitude >= maxSpeed)
@@ -111,22 +132,36 @@ public class PlayerController : MonoBehaviour
 
     public bool IsWalking()
     {
-        if (rb.velocity == Vector2.zero)
+        if (rb.velocity != Vector2.zero)
         {
-            return false;
+            return true;
         }
         else
         {
-            return true;
+            return false;
         }
     }
     public bool IsGrounded()
     {
+        if (isOnGround == false)
+        {
+            return false;
+        }
+
         return true;
+
+        //https://kylewbanks.com/blog/unity-2d-checking-if-a-character-or-object-is-on-the-ground-using-raycasts#:~:text=Once%20the%20Raycast%20is%20complete%2C%20we%20check%20if,player%20is%20on%20the%20ground%2C%20and%20act%20accordingly.
+        //https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Physics2D.Raycast.html
+        //https://docs.unity3d.com/6000.0/Documentation/ScriptReference/LayerMask.NameToLayer.html
     }
 
     public FacingDirection GetFacingDirection()
     {
-        return FacingDirection.left;
+        if (facingLeft == true)
+        {
+            return FacingDirection.left;
+        }
+
+        return FacingDirection.right;
     }
 }
