@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -19,15 +20,14 @@ public class PlayerController : MonoBehaviour
     public float timeToReachDecelerate;
     
     private float gravity;
+    private float terminalFallingSpeed;
+
     public float apexHeight;
     public float apexTime;
-    private float terminalFallingSpeed;
-    private Vector2 initialJumpVelocity = Vector2.zero;
+    public float terminalSpeed;
 
     private bool facingLeft = false;
-
     private bool didWeJump = false;
-
     private bool isOnGround = true;
 
     public LayerMask groundLayer;
@@ -35,8 +35,8 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        gravity = apexHeight / apexTime;
-        terminalFallingSpeed = apexHeight / apexTime;
+        gravity = -2 * apexHeight / apexTime;
+        terminalFallingSpeed = apexHeight / terminalSpeed;
 
         acceleration = maxSpeed / timeToReachMaxSpeed;
         deceleration = maxSpeed / timeToReachDecelerate; 
@@ -46,7 +46,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) && isOnGround)
         {
             didWeJump = true;
             Debug.Log("Jump");
@@ -66,8 +66,9 @@ public class PlayerController : MonoBehaviour
         MovementUpdate(playerInput);
 
         Debug.Log("Players Velocity; " + velocity);
+        Debug.Log("Gravity: " + rb.gravityScale);
 
-        RaycastHit2D onGround = Physics2D.Raycast(transform.position, Vector2.down, 1f, groundLayer);
+        RaycastHit2D onGround = Physics2D.Raycast(transform.position, Vector2.down, 0.8f, groundLayer);
         if (onGround.collider != null)
         {
             isOnGround = true;
@@ -90,17 +91,15 @@ public class PlayerController : MonoBehaviour
 
         //velocity = rb.velocity;
 
-        initialJumpVelocity = rb.velocity;
-
         if (Input.GetKey(KeyCode.LeftArrow))
         {
-            rb.velocity += Vector2.left * acceleration * Time.deltaTime;
+            rb.velocity += Vector2.left * acceleration * Time.fixedDeltaTime;
             facingLeft = true;
         }
 
         if (Input.GetKey(KeyCode.RightArrow))
         {
-            rb.velocity += Vector2.right * acceleration * Time.deltaTime;
+            rb.velocity += Vector2.right * acceleration * Time.fixedDeltaTime;
             facingLeft = false;
         }
 
@@ -111,15 +110,34 @@ public class PlayerController : MonoBehaviour
 
         if (rb.velocity != Vector2.zero && !Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
         {
-            rb.velocity -= rb.velocity.normalized * deceleration * Time.deltaTime;
+            rb.velocity -= rb.velocity.normalized * deceleration * Time.fixedDeltaTime;
         }
 
-        if (didWeJump)
+        if (didWeJump && isOnGround)
         {
-            gravity = -2 * apexHeight / apexTime;
-            initialJumpVelocity += Vector2.up * gravity * Time.deltaTime;
-
+            rb.gravityScale = gravity;
+            rb.velocity += Vector2.up * apexTime * Time.fixedDeltaTime;
             didWeJump = false;
+        }
+
+        //if (!didWeJump && !isOnGround)
+        //{
+        //    rb.gravityScale = terminalFallingSpeed;
+        //    rb.velocity += Vector2.down * terminalFallingSpeed * Time.deltaTime;
+        //}
+
+        if (!didWeJump && !isOnGround)
+        {
+            rb.gravityScale = terminalFallingSpeed;
+            rb.velocity += Vector2.down * terminalSpeed * Time.fixedDeltaTime;
+
+            if (rb.velocity.magnitude >= terminalSpeed)
+            {
+                rb.velocity = rb.velocity.normalized * terminalSpeed;
+                Debug.Log("normalized");
+            }
+
+            rb.gravityScale = 0f;
         }
 
         //rb.velocity = velocity;

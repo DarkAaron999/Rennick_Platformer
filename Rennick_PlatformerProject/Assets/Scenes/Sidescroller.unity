@@ -1696,8 +1696,9 @@ MonoBehaviour:
   maxSpeed: 3
   timeToReachMaxSpeed: 1
   timeToReachDecelerate: 2
-  apexHeight: -20
-  apexTime: 1
+  apexHeight: 20
+  apexTime: 4
+  terminalSpeed: 5
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
