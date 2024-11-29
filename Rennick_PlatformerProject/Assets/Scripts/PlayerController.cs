@@ -43,7 +43,7 @@ public class PlayerController : MonoBehaviour
 
         rb = GetComponent<Rigidbody2D>();
     }
-
+    // Update is called once per frame
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space) && isOnGround)
@@ -53,7 +53,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
+
     void FixedUpdate()
     {
         //The input from the player needs to be determined and then passed in the to the MovementUpdate which should
@@ -113,18 +113,18 @@ public class PlayerController : MonoBehaviour
             rb.velocity -= rb.velocity.normalized * deceleration * Time.fixedDeltaTime;
         }
 
+        //rb.velocity = velocity;
+
+        //https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Vector2.Lerp.html
+        //https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Input.GetAxis.html
+        //https://stackoverflow.com/questions/32905191/c-sharp-2d-platformer-movement-code
+
         if (didWeJump && isOnGround)
         {
             rb.gravityScale = gravity;
             rb.velocity += Vector2.up * apexTime * Time.fixedDeltaTime;
             didWeJump = false;
         }
-
-        //if (!didWeJump && !isOnGround)
-        //{
-        //    rb.gravityScale = terminalFallingSpeed;
-        //    rb.velocity += Vector2.down * terminalFallingSpeed * Time.deltaTime;
-        //}
 
         if (!didWeJump && !isOnGround)
         {
@@ -139,13 +139,6 @@ public class PlayerController : MonoBehaviour
 
             rb.gravityScale = 0f;
         }
-
-        //rb.velocity = velocity;
-
-
-        //https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Vector2.Lerp.html
-        //https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Input.GetAxis.html
-        //https://stackoverflow.com/questions/32905191/c-sharp-2d-platformer-movement-code
     }
 
     public bool IsWalking()
