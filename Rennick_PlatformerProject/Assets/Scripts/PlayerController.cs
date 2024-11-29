@@ -11,6 +11,14 @@ public class PlayerController : MonoBehaviour
         left, right
     }
 
+    public enum CharacterState
+    {
+        idle, walk, jump, die
+    }
+
+    public CharacterState currentState = CharacterState.idle;
+    public CharacterState previousState = CharacterState.idle;
+
     private Rigidbody2D rb;
     private Vector2 velocity = Vector2.zero;
     private float acceleration;
@@ -27,6 +35,8 @@ public class PlayerController : MonoBehaviour
     public float apexTime;
     public float terminalSpeed;
     public float coyoteTime;
+
+    public int currentHealth;
 
     private bool facingLeft = false;
     private bool didWeJump = false;
@@ -48,6 +58,56 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        previousState = currentState;
+
+        if (IsDead())
+        {
+            currentState = CharacterState.die;
+        }
+
+        switch (currentState)
+        {
+            case CharacterState.idle:
+                if (IsWalking())
+                {
+                    //transition to walk state
+                    currentState = CharacterState.walk;
+                }
+                if (!IsGrounded())
+                {
+                    //transition to jump state
+                    currentState = CharacterState.jump;
+                }
+                break;
+            case CharacterState.walk:
+                if (!IsWalking())
+                {
+                    //transition to the idle state
+                    currentState = CharacterState.idle;
+                }
+                if (!IsGrounded())
+                {
+                    //transition to jump state
+                    currentState = CharacterState.jump;
+                }
+                break;
+            case CharacterState.jump:
+                if (IsGrounded())
+                {
+                    if (IsWalking())
+                    {
+                        //transition to walk state
+                        currentState = CharacterState.walk;
+                    }
+                    else
+                    {
+                        //transition to idle state
+                        currentState = CharacterState.idle;
+                    }
+                }
+                break;
+        }
+
         if (Input.GetKeyDown(KeyCode.Space) && isOnGround | ungroundedTime >= coyoteTime)
         {
             didWeJump = true;
@@ -72,7 +132,7 @@ public class PlayerController : MonoBehaviour
         Vector2 playerInput = new Vector2();
         MovementUpdate(playerInput);
 
-        RaycastHit2D onGround = Physics2D.Raycast(transform.position, Vector2.down, 0.8f, groundLayer);
+        RaycastHit2D onGround = Physics2D.Raycast(rb.position, Vector2.down, 0.3f, groundLayer);
         if (onGround.collider != null)
         {
             isOnGround = true;
@@ -95,7 +155,7 @@ public class PlayerController : MonoBehaviour
         //Vector2 movment = new Vector2(playerInput.x * maxSpeed, rb.velocity.y);
         //rb.velocity = Vector2.Lerp(rb.velocity, movment, acceleration * Time.deltaTime);
 
-        //velocity = rb.velocity;
+        //Vector2 velocity = rb.velocity;
 
         if (Input.GetKey(KeyCode.LeftArrow))
         {
@@ -149,7 +209,7 @@ public class PlayerController : MonoBehaviour
 
     public bool IsWalking()
     {
-        if (rb.velocity != Vector2.zero)
+        if (rb.velocity.x != Vector2.zero.x)
         {
             return true;
         }
@@ -170,6 +230,16 @@ public class PlayerController : MonoBehaviour
         //https://kylewbanks.com/blog/unity-2d-checking-if-a-character-or-object-is-on-the-ground-using-raycasts#:~:text=Once%20the%20Raycast%20is%20complete%2C%20we%20check%20if,player%20is%20on%20the%20ground%2C%20and%20act%20accordingly.
         //https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Physics2D.Raycast.html
         //https://docs.unity3d.com/6000.0/Documentation/ScriptReference/LayerMask.NameToLayer.html
+    }
+
+    public bool IsDead()
+    {
+        return currentHealth <= 0f;
+    }
+
+    public void OnDeathAnimationComplete()
+    {
+        gameObject.SetActive(false);
     }
 
     public FacingDirection GetFacingDirection()
