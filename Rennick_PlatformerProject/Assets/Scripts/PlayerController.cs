@@ -21,10 +21,12 @@ public class PlayerController : MonoBehaviour
     
     private float gravity;
     private float terminalFallingSpeed;
+    private float ungroundedTime = 0f;
 
     public float apexHeight;
     public float apexTime;
     public float terminalSpeed;
+    public float coyoteTime;
 
     private bool facingLeft = false;
     private bool didWeJump = false;
@@ -46,11 +48,16 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && isOnGround)
+        if (Input.GetKeyDown(KeyCode.Space) && isOnGround | ungroundedTime >= coyoteTime)
         {
             didWeJump = true;
             Debug.Log("Jump");
         }
+
+        Debug.Log("Players Velocity; " + velocity);
+        Debug.Log("Gravity: " + rb.gravityScale);
+        Debug.Log("jump time: " + ungroundedTime);
+        Debug.Log(didWeJump);
     }
 
 
@@ -65,18 +72,17 @@ public class PlayerController : MonoBehaviour
         Vector2 playerInput = new Vector2();
         MovementUpdate(playerInput);
 
-        Debug.Log("Players Velocity; " + velocity);
-        Debug.Log("Gravity: " + rb.gravityScale);
-
         RaycastHit2D onGround = Physics2D.Raycast(transform.position, Vector2.down, 0.8f, groundLayer);
         if (onGround.collider != null)
         {
             isOnGround = true;
+            ungroundedTime = 0f;
             Debug.Log("is on ground");
         }
         else
         {
             isOnGround = false;
+            ungroundedTime += 1 * Time.fixedDeltaTime;
             Debug.Log("not on ground");
         }
     }
@@ -126,7 +132,7 @@ public class PlayerController : MonoBehaviour
             didWeJump = false;
         }
 
-        if (!didWeJump && !isOnGround)
+        if (!isOnGround)
         {
             rb.gravityScale = terminalFallingSpeed;
             rb.velocity += Vector2.down * terminalSpeed * Time.fixedDeltaTime;

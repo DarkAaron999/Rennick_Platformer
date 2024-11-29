@@ -1699,6 +1699,7 @@ MonoBehaviour:
   apexHeight: 20
   apexTime: 4
   terminalSpeed: 5
+  coyoteTime: 2
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
