@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
@@ -36,6 +37,7 @@ public class PlayerController : MonoBehaviour
     private bool isWalkingRight = false;
 
     private float gravity;
+    private float initialJumpVelocity;
     private float terminalFallingSpeed;
     public float apexHeight;
     public float apexTime;
@@ -46,7 +48,7 @@ public class PlayerController : MonoBehaviour
     private bool isOnGround = true;
 
     private Vector2 directionGround = Vector2.down;
-    private float distance = 0.05f;
+    private float distance = 0.5f;
     private float ungroundedTime = 0f;
 
     public int currentHealth;
@@ -55,6 +57,7 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         gravity = -2 * apexHeight / Mathf.Pow(apexTime, 2);
+        initialJumpVelocity = 2 * apexHeight / apexTime;
         terminalFallingSpeed = apexHeight / terminalSpeed;
 
 
@@ -123,19 +126,27 @@ public class PlayerController : MonoBehaviour
         {
             isWalkingLeft = true;
         }
+        else
+        {
+            isWalkingLeft = false;
+        }
 
         if (Input.GetKey(KeyCode.RightArrow))
         {
             isWalkingRight = true;
         }
+        else
+        {
+            isWalkingRight = false;
+        }
 
         if (Input.GetKeyDown(KeyCode.Space) && IsGrounded() | ungroundedTime > coyoteTime)
         {
             didWeJump = true;
-            Debug.Log("Jump");
+            //Debug.Log("Jump");
         }
 
-        Debug.Log(("Time off the ground: " + ungroundedTime));
+        //Debug.Log(("Time off the ground: " + ungroundedTime));
     }
 
 
@@ -148,45 +159,65 @@ public class PlayerController : MonoBehaviour
         if (onGround.collider != null)
         {
             isOnGround = true;
-            Debug.Log("is on ground");
+            //Debug.Log("is on ground");
         }
         else
         {
             isOnGround = false;
-            Debug.Log("not on ground");
+            //Debug.Log("not on ground");
         }
     }
 
     private void MovementUpdate(Vector2 playerInput)
     {
         Vector2 velocity = playerRB.velocity;
+        if (!IsGrounded())
+        {
+            velocity += Vector2.up * gravity * Time.fixedDeltaTime;
+        }
+
+
+        Debug.Log(velocity);
 
         if (isWalkingLeft)
         {
             velocity += Vector2.left * acceleration * Time.fixedDeltaTime;
             direction = FacingDirection.left;
-            isWalkingLeft = false;
+            Debug.Log("Walking left: " + Vector2.left * acceleration * Time.fixedDeltaTime);
         }
 
         if (isWalkingRight)
         {
             velocity += Vector2.right * acceleration * Time.fixedDeltaTime;
             direction = FacingDirection.right;
-            isWalkingRight = false;
+            Debug.Log("Walking right: " + Vector2.right * acceleration * Time.fixedDeltaTime);
         }
 
-        if (velocity.magnitude >= maxSpeed)
+        if (velocity.x >= maxSpeed)
         {
-            velocity = velocity.normalized * maxSpeed;
+            velocity.x = maxSpeed;
         }
 
-        if (velocity != Vector2.zero && !Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
+        if (velocity.x <= -maxSpeed)
         {
-            velocity -= velocity.normalized * maxSpeed / timeToReachDecelerate * Time.fixedDeltaTime;
+            velocity.x = -maxSpeed;
+        }
 
-            if (velocity.magnitude < deceleration)
+        if (velocity.x != 0 && !isWalkingLeft && !isWalkingRight)
+        {
+            if (velocity.x > 0)
             {
-                velocity = Vector2.zero * Time.fixedDeltaTime;
+                velocity.x -= deceleration * Time.fixedDeltaTime;
+            }
+
+            if (velocity.x < 0)
+            {
+                velocity.x += deceleration * Time.fixedDeltaTime;
+            }
+
+            if (velocity.x < deceleration * Time.fixedDeltaTime && velocity.x > -deceleration * Time.fixedDeltaTime)
+            {
+                velocity.x = 0;
             }
         }
 
@@ -194,28 +225,29 @@ public class PlayerController : MonoBehaviour
 
         if (didWeJump && IsGrounded())
         {
-            playerRB.gravityScale = gravity;
-            velocity += Vector2.up * gravity * Time.fixedDeltaTime; 
+            //playerRB.gravityScale = gravity;
+            velocity.y = initialJumpVelocity;
+            Debug.Log("Jump1");
             didWeJump = false;
         }
 
         if (!IsGrounded())
         {
-            ungroundedTime += 1 * Time.fixedDeltaTime;
-            playerRB.gravityScale = terminalFallingSpeed;
-            velocity += Vector2.down * terminalFallingSpeed * Time.fixedDeltaTime;
+            //ungroundedTime += 1 * Time.fixedDeltaTime;
+            ////playerRB.gravityScale = terminalFallingSpeed;
+            //velocity += Vector2.down * terminalFallingSpeed * Time.fixedDeltaTime;
 
-            if (velocity.y >= apexHeight)
-            {
-                velocity = velocity.normalized * apexHeight;
-            }
+            //if (velocity.y >= apexHeight)
+            //{
+            //    velocity = velocity.normalized * apexHeight;
+            //}
 
-            if (velocity.magnitude >= apexHeight)
-            {
-                velocity = velocity.normalized * apexHeight;
-            }
+            //if (velocity.magnitude >= apexHeight)
+            //{
+            //    velocity = velocity.normalized * apexHeight;
+            //}
 
-            playerRB.gravityScale = 0f;
+            //playerRB.gravityScale = 0f;
 
         }
         else
@@ -228,7 +260,7 @@ public class PlayerController : MonoBehaviour
 
     public bool IsWalking()
     {
-        if (playerRB.velocity == Vector2.zero)
+        if (playerRB.velocity.x == 0)
         {
             return false;
         }

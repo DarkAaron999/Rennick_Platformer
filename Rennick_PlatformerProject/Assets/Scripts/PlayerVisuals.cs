@@ -11,6 +11,7 @@ public class PlayerVisuals : MonoBehaviour
     public Animator animator;
     public SpriteRenderer bodyRenderer;
     public PlayerController playerController;
+    public CameraController cameraController;
 
     private int isWalkingHash, isGroundedHash, onDieHash;
 
@@ -36,9 +37,19 @@ public class PlayerVisuals : MonoBehaviour
             switch (playerController.currentState)
             {
                 case PlayerController.CharacterState.idle:
+                    if (playerController.previousState == PlayerController.CharacterState.jump)
+                    {
+                        //cameraController.Shake(0.2f, 0.2f);
+                        Debug.Log("Shake");
+                    }
                     animator.CrossFade("Idle", 0f);
                     break;
                 case PlayerController.CharacterState.walk:
+                    if (playerController.previousState == PlayerController.CharacterState.jump)
+                    {
+                        //cameraController.Shake(0.2f, 0.2f);
+                        Debug.Log("Shake");
+                    }
                     animator.CrossFade("Walking", 0f);
                     break;
                 case PlayerController.CharacterState.jump:
