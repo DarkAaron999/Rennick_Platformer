@@ -35,8 +35,8 @@ public class CameraController : MonoBehaviour
 		Vector3 desiredPosition =  new Vector3(target.position.x, target.position.y, transform.position.z) + (Vector3)(shakeOffset);
 		Vector3 smoothedPosition = Vector3.SmoothDamp(transform.position, desiredPosition, ref currentVelocity, arrivalTime);
 
-       // desiredPosition.x = Mathf.Clamp(desiredPosition.x, leftBoundary, rightBoundary);
-      //  desiredPosition.y = Mathf.Clamp(desiredPosition.y, bottomBoundary, desiredPosition.y);
+        desiredPosition.x = Mathf.Clamp(desiredPosition.x, leftBoundary, rightBoundary);
+        desiredPosition.y = Mathf.Clamp(desiredPosition.y, bottomBoundary, desiredPosition.y);
 
 		transform.position = desiredPosition;
 	}
