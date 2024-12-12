@@ -40,7 +40,7 @@ public class PlayerVisuals : MonoBehaviour
                     if (playerController.previousState == PlayerController.CharacterState.jump)
                     {
                         //cameraController.Shake(0.2f, 0.2f);
-                        Debug.Log("Shake");
+                        //Debug.Log("Shake");
                     }
                     animator.CrossFade("Idle", 0f);
                     break;
@@ -48,12 +48,18 @@ public class PlayerVisuals : MonoBehaviour
                     if (playerController.previousState == PlayerController.CharacterState.jump)
                     {
                         //cameraController.Shake(0.2f, 0.2f);
-                        Debug.Log("Shake");
+                        //Debug.Log("Shake");
                     }
                     animator.CrossFade("Walking", 0f);
                     break;
                 case PlayerController.CharacterState.jump:
                     animator.CrossFade("Jumping", 0f);
+                    break;
+                case PlayerController.CharacterState.dash:
+                    animator.CrossFade("Dashing", 0f);
+                    break;
+                case PlayerController.CharacterState.onWall:
+                    animator.CrossFade("onWall", 0f);
                     break;
                 case PlayerController.CharacterState.die:
                     animator.CrossFade("Die", 0f);
