@@ -2241,7 +2241,7 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
-  SpringLoadedPlatform:
+  springLoadedPlatform:
     serializedVersion: 2
     m_Bits: 128
   maxSpeed: 5
@@ -2250,9 +2250,9 @@ MonoBehaviour:
   apexHeight: 4
   apexTime: 0.6
   terminalSpeed: 6
-  coyoteTime: 1.4
+  coyoteTime: 0.1
   dashingDistance: 10
-  dashTimer: 0.2
+  dashTimer: 0.3
   dashTimeColddown: 1
   wallJumpSpeed: 3
   apexWallHeight: 3

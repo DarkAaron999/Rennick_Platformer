@@ -21,17 +21,19 @@ public class PlayerController : MonoBehaviour
         idle, walk, jump, die, dash, onWall
     }
 
+    [Header("Ainmation State")]
     //A character state variable for the current state ainmation
     public CharacterState currentState = CharacterState.idle;
     //A character state variable for the previous state ainmation
     public CharacterState previousState = CharacterState.idle;
 
+    [Header("Facing Direction")]
     //A facing direction variable for the character facing direction set to right
     public FacingDirection direction = FacingDirection.right;
 
+    [Header("Layer Mask")]
     //A layer mask variable for ground layer 
     public LayerMask groundLayer;
-
     //A layer mask variable for spring-loaded platform
     public LayerMask springLoadedPlatform;
 
@@ -72,7 +74,7 @@ public class PlayerController : MonoBehaviour
     private float gravity;
     //A float variable for the player initial jump 
     private float initialJumpVelocity;
-    //A float variable for when the player is off the ground
+    //A float variable for when the player is off the ground, the count down for coyoteTime
     private float ungroundedTime;
     //A boolean variable when the player jumps
     private bool didWeJump = false;
@@ -357,8 +359,8 @@ public class PlayerController : MonoBehaviour
             isWalkingRight = false;
         }
 
-        //If the Z key is pressed and IsGrounded is true or ungroundtime is greater than coyoteTime or IsOnWall is true
-        if (Input.GetKeyDown(KeyCode.Z) && IsGrounded() | ungroundedTime > coyoteTime | IsOnWall())
+        //If the Z key is pressed and IsGrounded is true or ungroundtime is greater than zero or IsOnWall is true
+        if (Input.GetKeyDown(KeyCode.Z) && ungroundedTime > 0f | IsOnWall())
         {
             //Sets didWeWallJump to true
             didWeWallJump = true;
@@ -378,6 +380,8 @@ public class PlayerController : MonoBehaviour
 
         //Debug.Log(("Time off the ground: " + ungroundedTime));
         //Debug.Log(("Dash Timer: " + dashingTime));
+        //Debug.Log("dashing time: " + dashingTime);
+        //Debug.Log("dash timer: " + dashTimer);
     }
 
     void FixedUpdate()
@@ -470,7 +474,7 @@ public class PlayerController : MonoBehaviour
         acceleration = maxSpeed / timeToReachMaxSpeed;
 
         //If didWeJump is true and IsGrounded is true
-        if (didWeJump && IsGrounded())
+        if (didWeJump)
         {
             //Set the velocity.y to initialJumpVelocity
             velocity.y = initialJumpVelocity;
@@ -478,6 +482,9 @@ public class PlayerController : MonoBehaviour
             didWeJump = false;
 
             //Debug.Log("Jumping");
+
+            //Sets ungroundedTime to zero
+            ungroundedTime = 0;
         }
 
         //If IsGrounded is false
@@ -500,16 +507,16 @@ public class PlayerController : MonoBehaviour
             //If direction is equal to FacingDirection.right
             if (direction == FacingDirection.right)
             {
-                //Set velocity.x to dashingSpeed
-                velocity.x = dashingSpeed;
+                //Set velocity equal to new vector2, sets dashingSpeed on the X, and set zero on the Y 
+                velocity = new Vector2(dashingSpeed, 0f);
 
                 //Debug.Log("Dash Right: " + dashingSpeed);
             }
             //Else if direction is equal to FacingDirection.left
             else if (direction == FacingDirection.left)
             {
-                //Set velocity.x to minus dashingSpeed
-                velocity.x = -dashingSpeed;
+                //Set velocity equal to new vector2, sets minus dashingSpeed on the X, and set zero on the Y 
+                velocity = new Vector2(-dashingSpeed, 0f);
 
                 //Debug.Log("Dash Left: " + dashingSpeed);
             }
@@ -619,18 +626,18 @@ public class PlayerController : MonoBehaviour
         {
             //Set isOnGround to true
             isOnGround = true;
-            //Set ungroundedTime to zero
-            ungroundedTime = 0f;
-            //Debug.Log("is on ground");
+            //Set ungroundedTime to coyoteTime
+            ungroundedTime = coyoteTime;
+            Debug.Log("is on ground");
         }
         //Else onGround collider is equal to null 
         else
         {
             //Set isOnGround to false
             isOnGround = false;
-            //ungroundedTime counts up
-            ungroundedTime += Time.fixedDeltaTime;
-            //Debug.Log("not on ground");
+            //ungroundedTime counts down
+            ungroundedTime -= Time.fixedDeltaTime;
+            Debug.Log("not on ground");
         }
     }
 
@@ -643,8 +650,8 @@ public class PlayerController : MonoBehaviour
             //Castes a box from the players box collider to the left to detect the ground layer
             RaycastHit2D onWall = Physics2D.BoxCast(boxCollider.bounds.center, new Vector2(0.65f, 0.65f), 0f, Vector2.left, 0.05f, groundLayer);
 
-            //If onWall collider is not equal to null
-            if (onWall.collider != null)
+            //If onWall collider is not equal to null and is IsGrounded is false
+            if (onWall.collider != null && !IsGrounded())
             {
                 //Set isWallJumping to true
                 isWallJumping = true;
@@ -667,21 +674,21 @@ public class PlayerController : MonoBehaviour
             //Castes a box from the players box collider to the right to detect the ground layer
             RaycastHit2D onWall = Physics2D.BoxCast(boxCollider.bounds.center, new Vector2(0.65f, 0.65f), 0f, Vector2.right, 0.05f, groundLayer);
 
-            //If onWall collider is not equal to null
-            if (onWall.collider != null)
+            //If onWall collider is not equal to null and is IsGrounded is false
+            if (onWall.collider != null && !IsGrounded())
             {
                 //Set isWallJumping to true
                 isWallJumping = true;
                 //Set ungroundedTime to zero
                 ungroundedTime = 0f;
-                //Debug.Log("Right: Is on wall");
+                Debug.Log("Right: Is on wall");
             }
             //Else onWall collider is equal to null 
             else
             {
                 //Set isWallJumping to false
                 isWallJumping = false;
-                //Debug.Log("Right: Is not wall");
+                Debug.Log("Right: Is not wall");
             }
         }
 
@@ -714,8 +721,8 @@ public class PlayerController : MonoBehaviour
     //IsWalking Boolean method
     public bool IsWalking()
     {
-        //If isWalkingLeft or isWalkingRight
-        if (isWalkingLeft || isWalkingRight)
+        //If the players velocity is not equal to zero
+        if (playerRB.velocity.x != 0f)
         {
             //Set IsWalking to true
             return true;
@@ -774,13 +781,17 @@ public class PlayerController : MonoBehaviour
         return false;
     }
 
+    //IsOnWall Boolean method
     public bool IsOnWall()
     {
+        //If onWall is true and is IsGrounded is false and isWalkingLeft or isWalkingRight
         if (onWall && !IsGrounded() && (isWalkingLeft || isWalkingRight))
         {
+            //Sets IsOnWall to true
             return true;
         }
 
+        //Sets IsOnWall to false
         return false;
     }
 
